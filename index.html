@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDo</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div id="app">
+        <div class="form-container">
+            <div class="form-group">
+                <!-- <input type="hidden" v-model="id"> -->
+                <input type="number" placeholder="author_id" v-model="author_id">
+            </div>
+            <div class="form-group">
+                <input type="text" placeholder="Title" v-model="title">
+            </div>
+            <div class="form-group">
+                <textarea name="" id="" rows="5" placeholder="Description" v-model="description"></textarea>
+            </div>
+            <div class="form-group">
+                <button type="button" @click="addTodo" v-if="isHide">+Add Todo</button>
+                <button type="button" @click="updatePost" v-if="!isHide">Update</button>
+            </div>
+        </div>
+        <section class="container">
+            <div class="card" v-for="(card, index) of todos" @key="index">
+                <div class="card-title">
+                    <h1>{{card.title}}</h1>
+                </div>
+                <div class="card-body">
+                    <p>{{card.body}}</p>
+                </div>
+                <div class="card-footer">
+                    <!-- <p>{{card.status}}</p> -->
+                    <p><small>{{card.created_at}}</small></p>
+                </div>
+                <div class="item">
+                    <i class="fa fa-pencil" @click="editPost(card)"></i>
+                    <i class="fa fa-trash-o" @click="deletePost(card.id)"></i>
+                </div>
+            </div>
+        </section>
+
+    </div>
+    
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    new Vue ({
+        el: '#app',
+        data: {
+            todos: [],
+            author_id: null,
+            title: "",
+            description: "",
+            id: null,
+            url: 'http://localhost:8000/api/books',
+            isHide: true
+        },
+        methods: {
+            getTodo(){
+                axios.get(this.url).then(response => {
+                    this.todos = response.data.data;
+                    console.log(this.todos);
+                });
+            },
+            addTodo(){
+                let object = {
+                    author_id: parseInt(this.author_id),
+                    title: this.title,
+                    body: this.description
+                }
+                console.log(object);
+                axios.post(this.url, object).then(response => {
+                    console.log(response);
+                    this.getTodo();
+                })
+                this.author_id = null;
+                this.title = '';
+                this.description = '';
+            },
+            deletePost(id){
+                // console.log(index);
+                axios.delete(this.url+'/'+parseInt(id)).then(responce => {
+                    this.getTodo();
+                })
+            },
+            editPost(post){
+                this.author_id = post.author_id;
+                this.title = post.title;
+                this.description = post.body;
+                this.id = post.id;
+                this.isHide = false;
+            },
+            updatePost(){
+                // console.log(this.id);
+                let object = {
+                    author_id: parseInt(this.author_id),
+                    title: this.title,
+                    body: this.description,
+                }
+                axios.put(this.url+ '/'+ parseInt(this.id), object).then(responce => {
+                    console.log(responce);
+                    window.location.reload();
+                })
+                this.isHide = true;
+            }
+        },
+        mounted(){
+            this.getTodo();
+        },
+    })
+</script>
+</html>
